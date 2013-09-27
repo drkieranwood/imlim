@@ -20,6 +20,8 @@ sensor_msgs::ImageConstPtr currentImg;
 //Time the last image was received and time the last image was sent.
 ros::Time lastImageTime_rec;
 ros::Time lastImageTime_pub;
+//Time to monitor the node loop rate
+ros::Time lastLoopTime;
 
 //Flag to indicate at least one image has been received. This allows the
 //node to start even when the input image stream is not operating.
@@ -92,8 +94,9 @@ int main(int argc, char **argv)
 	//Although the output of this node is published at the desired rate 
 	//the actual internal loop runs 10x faster to ensure the latest 
 	//image is always published.
-	double imageRate = 1.0;                                             /*The output image rate*/
-	double loopRate = imageRate*10.0;                                   /*The node loop rate (10x output rate)*/
+	double imageRate = 10.0;                                             /*The output image rate*/
+	double rateMulti = 100.0;						
+	double loopRate = imageRate*rateMulti;                               /*The node loop rate (rateMulti x output rate)*/
 	ros::Rate rateLimiter(loopRate);
 
 
@@ -102,6 +105,7 @@ int main(int argc, char **argv)
 	//=========================
 	//Start the loop after a 2 second delay. To allow all ROS init. 
 	//processes to complete.
+	lastLoopTime = ros::Time::now();
 	ros::Duration sleepone = ros::Duration(1,0);
 	sleepone.sleep();
 	sleepone.sleep();
@@ -131,7 +135,7 @@ int main(int argc, char **argv)
 				lastImageTime_pub = ros::Time::now();
 			}
 			pubCount++;
-			if (pubCount==10)
+			if (pubCount==rateMulti)
 			{
 				pubCount=0;
 			}
@@ -170,6 +174,11 @@ int main(int argc, char **argv)
 		ros::spinOnce();
 		rateLimiter.sleep();
 		ros::spinOnce();	
+		
+		//Find and publish the node rate (this is different to the output rate)
+		double loopRate = (1.0)/((ros::Time::now() - lastLoopTime).toSec());
+		lastLoopTime = ros::Time::now();
+		ROS_INFO("imlim::Node rate: %6.3fs",loopRate);
 	}
 
 	ROS_INFO("imlim::End script.");

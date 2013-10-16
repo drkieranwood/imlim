@@ -14,7 +14,7 @@
 //======================
 
 //Debug messages flag.
-int showDebugMsgs = 1;
+int showDebugMsgs = 0;
 
 //The current image to publish each loop. Even if no new image has 
 //arrived the lastest captured image will be published repeatedly.
@@ -131,9 +131,9 @@ int main(int argc, char **argv)
 	//native image stream rate else this node will do nothing and will
 	//just republish at the incomming image rate.
 	//Although the output of this node is published at the desired rate 
-	//the actual internal loop runs 100x faster to ensure the latest 
+	//the actual internal loop runs (rateMulti)x faster to ensure the latest 
 	//image is always published.
-	double rateMulti = 100.0;						
+	double rateMulti = 50.0;						
 	double loopRate = imageOutputRate*rateMulti;
 	ros::Rate rateLimiter(loopRate);
 

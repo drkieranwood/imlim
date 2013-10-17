@@ -31,6 +31,11 @@ ros::Time lastLoopTime;
 //node to start even when the input image stream is not operating.
 int oneImgFlag = 0;
 
+//Rate display counter (makes the current rate only display once per n published images)
+int displayCountMax = 60;
+int displayCount = 0;
+
+
 
 //======================
 //Callback function for
@@ -170,13 +175,21 @@ int main(int argc, char **argv)
 				//and re-sent.
 				double curLoopRate = (1.0)/((ros::Time::now() - lastImageTime_pub).toSec());
 				double delayTime   = (ros::Time::now() - lastImageTime_rec).toSec();
-				ROS_INFO("imlim::Current rate: %6.3fHz, delay: %6.5fs",curLoopRate,delayTime);
+				if (displayCount==0)
+				{
+					ROS_INFO("imlim::Current rate: %6.3fHz, delay: %6.5fs",curLoopRate,delayTime);
+				}
 				lastImageTime_pub = ros::Time::now();
 			}
 			pubCount++;
 			if (pubCount==rateMulti)
 			{
 				pubCount=0;
+			}
+			displayCount++;
+			if (displayCount==(displayCountMax*rateMulti))
+			{
+				displayCount=0;
 			}
 		}
 		else
